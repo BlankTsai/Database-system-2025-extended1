@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>上架新商品</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>上架新商品</h1>
+        <a href="{{ url_for('index') }}" class="nav-link">返回首頁</a>
+
+        <div class="card">
+            <h2>單筆上架</h2>
+            <form action="{{ url_for('add_product') }}" method="POST">
+                <div class="form-group">
+                    <label for="name">商品名稱:</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">商品描述:</label>
+                    <textarea name="description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="price">價格:</label>
+                    <input type="number" name="price" required min="0">
+                </div>
+                <button type="submit" name="form_type" value="single">立即上架</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>多筆上架 (Multiple Insert)</h2>
+            <form action="{{ url_for('add_product') }}" method="POST">
+                <input type="hidden" name="form_type" value="batch">
+                
+                <div id="batch-items-container">
+                    <div class="batch-item">
+                        <input type="text" name="batch_name" placeholder="商品名稱" required>
+                        <input type="number" name="batch_price" placeholder="價格" required min="0">
+                    </div>
+                </div>
+                
+                <div class="batch-controls">
+                    <button type="button" id="add-more-btn">再加一項</button>
+                    <button type="submit">一次上架全部</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('add-more-btn').addEventListener('click', function() {
+            // 1. 取得容器
+            const container = document.getElementById('batch-items-container');
+            
+            // 2. 建立新的 DOM 元素 (一整組 <div class="batch-item">)
+            const newItemDiv = document.createElement('div');
+            newItemDiv.className = 'batch-item';
+            
+            // 3. 填入 HTML 內容 (跟上面表單裡的一樣)
+            newItemDiv.innerHTML = `
+                <input type="text" name="batch_name" placeholder="商品名稱" required>
+                <input type="number" name="batch_price" placeholder="價格" required min="0">
+            `;
+            
+            // 4. 加到容器中
+            container.appendChild(newItemDiv);
+        });
+    </script>
+</body>
+</html>

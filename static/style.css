@@ -1,0 +1,186 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+h1, h2 {
+    color: #2c3e50;
+}
+
+/* 卡片樣式 (共用於表單和商品) */
+.card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
+/* 導覽連結 */
+.nav-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    background-color: #e0e0e0;
+    color: #555;
+    padding: 8px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+.nav-link:hover {
+    background-color: #d1d1d1;
+}
+.add-product-btn {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
+.add-product-btn:hover {
+    background-color: #0056b3;
+}
+
+
+/* 表單樣式 */
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+input[type="text"],
+input[type="number"],
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box; /* 確保 padding 不會撐爆寬度 */
+}
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+button[type="submit"],
+button[type="button"] {
+    background-color: #28a745;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+button[type="submit"]:hover {
+    background-color: #218838;
+}
+
+/* 多筆新增的樣式 */
+.batch-item {
+    display: flex;
+    gap: 10px; /* 欄位間距 */
+    margin-bottom: 10px;
+}
+.batch-item input[name="batch_name"] {
+    flex: 3; /* 名稱欄位佔 3 份 */
+}
+.batch-item input[name="batch_price"] {
+    flex: 1; /* 價格欄位佔 1 份 */
+}
+.batch-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+#add-more-btn {
+    background-color: #6c757d;
+}
+#add-more-btn:hover {
+    background-color: #5a6268;
+}
+
+/* 商品列表樣式 */
+.product-card {
+    border-left: 5px solid #007bff;
+}
+.product-card h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+.product-card .price {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #28a745;
+}
+.product-card .description {
+    color: #555;
+}
+/* --- [NEW] 商品卡片上的操作按鈕 --- */
+.action-buttons {
+    margin-top: 15px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.edit-btn, .delete-btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+    color: white;
+    transition: background-color 0.3s;
+}
+
+.edit-btn {
+    background-color: #ffc107; /* 黃色 */
+    color: #333;
+}
+.edit-btn:hover {
+    background-color: #e0a800;
+}
+
+.delete-btn {
+    background-color: #dc3545; /* 紅色 */
+    color: white;
+}
+.delete-btn:hover {
+    background-color: #c82333;
+}
+
+
+/* --- [NEW] 編輯頁面的表單控制項 --- */
+.form-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.cancel-btn {
+    display: inline-block;
+    background-color: #6c757d; /* 灰色 */
+    color: white;
+    padding: 12px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+.cancel-btn:hover {
+    background-color: #5a6268;
+}

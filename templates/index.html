@@ -3,10 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <title>二手交易網站</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>歡迎來到二手交易網站</h1>
-    <p>專案已成功啟動並連接到 MongoDB！</p>
-    
-    </body>
+    <div class="container">
+        <h1>歡迎來到二手交易網站</h1>
+        
+        <a href="{{ url_for('add_product') }}" class="nav-link add-product-btn">
+            + 上架新商品
+        </a>
+
+        <div class="product-list">
+            <h2>最新上架</h2>
+            
+            {% if products %}
+                {% for product in products %}
+                    <div class="product-card card">
+                        <h3>{{ product.name }}</h3>
+                        <p class="price">$ {{ product.price }}</p>
+                        <p class="description">{{ product.description or '此商品沒有描述' }}</p>
+                        <small>上架時間: {{ product.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        
+                        <div class="action-buttons">
+                            <a href="{{ url_for('edit_product', product_id=product._id) }}" class="edit-btn">
+                                編輯
+                            </a>
+
+                            <form action="{{ url_for('delete_product', product_id=product._id) }}" method="POST" style="display: inline;">
+                                <button type="submit" class="delete-btn" onclick="return confirm('確定要刪除「{{ product.name }}」嗎？')">
+                                    刪除
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>目前沒有任何商品，快去上架吧！</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
 </html>

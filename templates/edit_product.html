@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>編輯商品</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>編輯商品: {{ product.name }}</h1>
+
+        <div class="card">
+            <form method="POST">
+                <div class="form-group">
+                    <label for="name">商品名稱:</label>
+                    <input type="text" name="name" value="{{ product.name }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">商品描述:</label>
+                    <textarea name="description">{{ product.description }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="price">價格:</label>
+                    <input type="number" name="price" value="{{ product.price }}" required min="0">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit">儲存變更</button>
+                    <a href="{{ url_for('index') }}" class="cancel-btn">取消</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
