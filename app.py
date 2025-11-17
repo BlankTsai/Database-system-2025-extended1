@@ -12,11 +12,32 @@ app = Flask(__name__)
 
 # --- MongoDB 連線 ---
 mongo_uri = os.getenv('MONGO_URI')
-client = MongoClient(mongo_uri)
-db = client['flea_market']
-products_collection = db['products']
-# ---------------------
+client = None # 先設為 None
 
+try:
+    # [NEW] 告訴 MongoClient 等 60 秒 (60000ms)，而不是預設的 30 秒
+    client = MongoClient(
+        mongo_uri,
+        serverSelectionTimeoutMS=60000  # 60 秒
+    )
+    # [NEW] 在啟動時就測試一次連線
+    client.admin.command('ping')
+    print("MongoDB connected successfully.")
+    
+except Exception as e:
+    print(f"CRITICAL: Error connecting to MongoDB: {e}")
+    # 如果連線失敗，client 會保持為 None
+
+# [NEW] 檢查 client 是否成功連線
+if client:
+    db = client['flea_market']
+    products_collection = db['products']
+else:
+    # 如果連線失敗，將 db 和 collection 設為 None
+    print("CRITICAL: MongoDB client is None. Database will not work.")
+    db = None
+    products_collection = None
+# ---------------------
 
 @app.route('/')
 def index():
