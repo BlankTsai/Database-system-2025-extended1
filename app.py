@@ -1,26 +1,26 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from pymongo import MongoClient
 from dotenv import load_dotenv
 from datetime import datetime
-from bson.objectid import ObjectId  # [NEW] 匯入 ObjectId，用於刪除與更新商品
+from bson.objectid import ObjectId
 
 # 載入 .env 檔案中的環境變數
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # [NEW] 用於 flash 訊息 (Session)
 
-# --- MongoDB 連線 ---
+# --- MongoDB 連線 (保持原本較嚴謹的連線檢查版本) ---
 mongo_uri = os.getenv('MONGO_URI')
-client = None # 先設為 None
+client = None 
 
 try:
-    # [NEW] 告訴 MongoClient 等 60 秒 (60000ms)，而不是預設的 30 秒
+    # 告訴 MongoClient 等 60 秒 (60000ms)，並在啟動時測試連線
     client = MongoClient(
         mongo_uri,
-        serverSelectionTimeoutMS=60000  # 60 秒
+        serverSelectionTimeoutMS=60000 
     )
-    # [NEW] 在啟動時就測試一次連線
     client.admin.command('ping')
     print("MongoDB connected successfully.")
     
@@ -28,30 +28,121 @@ except Exception as e:
     print(f"CRITICAL: Error connecting to MongoDB: {e}")
     # 如果連線失敗，client 會保持為 None
 
-# [NEW] 檢查 client 是否成功連線
+# 檢查 client 是否成功連線
 if client:
     db = client['flea_market']
     products_collection = db['products']
 else:
-    # 如果連線失敗，將 db 和 collection 設為 None
     print("CRITICAL: MongoDB client is None. Database will not work.")
     db = None
     products_collection = None
 # ---------------------
 
+# [NEW] 輔助函式：檢查資料庫連線
+def check_db():
+    if products_collection is None:
+        return False
+    return True
+
+# --- 1. 首頁 + 進階搜尋 (整合新舊功能) ---
 @app.route('/')
 def index():
     """
-    Renders the homepage and displays all products.
+    Renders the homepage. Supports keyword search via ?q=...
     """
-    # 從資料庫讀取所有商品 (最新的排前面)
-    all_products = list(products_collection.find().sort("_id", -1))
-    return render_template('index.html', products=all_products)
+    if not check_db(): return "Database Error", 500
+
+    # 取得搜尋關鍵字
+    query = request.args.get('q')
+    
+    if query:
+        # [作業重點 1] db.collection.find (帶查詢條件)
+        # 使用 $regex 進行模糊搜尋 (不分大小寫)
+        filter_criteria = {"name": {"$regex": query, "$options": "i"}}
+        products = list(products_collection.find(filter_criteria).sort("_id", -1))
+    else:
+        # 如果沒有搜尋，顯示全部 (原本的邏輯)
+        products = list(products_collection.find().sort("_id", -1))
+    
+    # 傳遞 search_query 給 template 以便在搜尋框保留文字
+    return render_template('index.html', products=products, search_query=query)
 
 
-# --- 新增商品 ---
+# --- 2. 數據分析 Dashboard (新功能) ---
+@app.route('/dashboard')
+def dashboard():
+    if not check_db(): return "Database Error", 500
+
+    # [作業重點 2] db.collection.aggregate
+    pipeline = [
+        {
+            "$group": {
+                "_id": None, # 不分組，統計全部
+                "total_products": {"$sum": 1},          # 總數量
+                "total_value": {"$sum": "$price"},      # 總價值
+                "avg_price": {"$avg": "$price"},        # 平均價格
+                "max_price": {"$max": "$price"}         # 最高價
+            }
+        }
+    ]
+    
+    stats = list(products_collection.aggregate(pipeline))
+    
+    # 如果資料庫是空的，給預設值
+    data = stats[0] if stats else {
+        "total_products": 0, "total_value": 0, "avg_price": 0, "max_price": 0
+    }
+    
+    return render_template('dashboard.html', stats=data)
+
+
+# --- 3. 批次更新 (新功能) ---
+@app.route('/bulk_update', methods=['POST'])
+def bulk_update():
+    if not check_db(): return "Database Error", 500
+
+    # 範例功能：將所有價格 > 1000 的商品打 9 折
+    threshold = 1000
+    discount = 0.9
+    
+    # [作業重點 3] db.collection.updateMany
+    result = products_collection.update_many(
+        {"price": {"$gt": threshold}},      # 條件：價格大於 1000
+        {"$mul": {"price": discount}}       # 動作：價格 * 0.9
+    )
+    
+    msg = f"已成功更新 {result.modified_count} 筆商品 (高於 ${threshold} 打 9 折)"
+    print(msg) 
+    # 若要在頁面上顯示提示，需在 dashboard.html 實作 get_flashed_messages()
+    flash(msg)
+    return redirect(url_for('dashboard'))
+
+
+# --- 4. 批次刪除 (新功能) ---
+@app.route('/bulk_delete', methods=['POST'])
+def bulk_delete():
+    if not check_db(): return "Database Error", 500
+
+    # 範例功能：刪除所有價格 < 100 的商品 (清倉)
+    threshold = 100
+    
+    # [作業重點 4] db.collection.deleteMany
+    result = products_collection.delete_many(
+        {"price": {"$lt": threshold}}       # 條件：價格小於 100
+    )
+    
+    msg = f"已成功刪除 {result.deleted_count} 筆低價商品 (< ${threshold})"
+    print(msg)
+    flash(msg)
+    return redirect(url_for('dashboard'))
+
+
+# --- 以下保持原本的新增、編輯、刪除功能 ---
+
 @app.route('/add', methods=['GET', 'POST'])
 def add_product():
+    if not check_db(): return "Database Error", 500
+    
     if request.method == 'POST':
         form_type = request.form.get('form_type')
 
@@ -95,9 +186,9 @@ def add_product():
     return render_template('add_product.html')
 
 
-# --- [NEW] 刪除商品 ---
 @app.route('/delete/<product_id>', methods=['POST'])
 def delete_product(product_id):
+    if not check_db(): return "Database Error", 500
     try:
         obj_id = ObjectId(product_id)
         products_collection.delete_one({"_id": obj_id})
@@ -106,9 +197,9 @@ def delete_product(product_id):
     return redirect(url_for('index'))
 
 
-# --- [NEW] 編輯商品 (GET 顯示 / POST 更新) ---
 @app.route('/edit/<product_id>', methods=['GET', 'POST'])
 def edit_product(product_id):
+    if not check_db(): return "Database Error", 500
     try:
         obj_id = ObjectId(product_id)
     except Exception as e:
@@ -137,7 +228,6 @@ def edit_product(product_id):
             return render_template('edit_product.html', product=product)
         else:
             return redirect(url_for('index'))
-
 
 if __name__ == '__main__':
     app.run(debug=True)

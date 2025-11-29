@@ -7,38 +7,42 @@
 </head>
 <body>
     <div class="container">
-        <h1>歡迎來到二手交易網站</h1>
+        <h1>二手交易網站</h1>
         
-        <a href="{{ url_for('add_product') }}" class="nav-link add-product-btn">
-            + 上架新商品
-        </a>
+        <div class="nav-bar">
+            <a href="{{ url_for('add_product') }}" class="nav-link add-product-btn">+ 上架新商品</a>
+            <a href="{{ url_for('dashboard') }}" class="nav-link" style="background-color: #6f42c1; color: white;">前往管理後台</a>
+        </div>
+
+        <div class="search-section card">
+            <form action="{{ url_for('index') }}" method="GET" style="display: flex; gap: 10px;">
+                <input type="text" name="q" placeholder="搜尋商品名稱..." value="{{ search_query or '' }}">
+                <button type="submit">搜尋</button>
+                {% if search_query %}
+                    <a href="{{ url_for('index') }}" class="cancel-btn" style="padding: 12px;">清除</a>
+                {% endif %}
+            </form>
+        </div>
 
         <div class="product-list">
-            <h2>最新上架</h2>
+            <h2>商品列表 {% if search_query %}(搜尋結果: {{ search_query }}){% endif %}</h2>
             
             {% if products %}
                 {% for product in products %}
                     <div class="product-card card">
                         <h3>{{ product.name }}</h3>
-                        <p class="price">$ {{ product.price }}</p>
-                        <p class="description">{{ product.description or '此商品沒有描述' }}</p>
-                        <small>上架時間: {{ product.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
-                        
+                        <p class="price">$ {{ product.price | round(2) }}</p> <p class="description">{{ product.description }}</p>
+                        <small>上架時間: {{ product.created_at }}</small>
                         <div class="action-buttons">
-                            <a href="{{ url_for('edit_product', product_id=product._id) }}" class="edit-btn">
-                                編輯
-                            </a>
-
+                            <a href="{{ url_for('edit_product', product_id=product._id) }}" class="edit-btn">編輯</a>
                             <form action="{{ url_for('delete_product', product_id=product._id) }}" method="POST" style="display: inline;">
-                                <button type="submit" class="delete-btn" onclick="return confirm('確定要刪除「{{ product.name }}」嗎？')">
-                                    刪除
-                                </button>
+                                <button type="submit" class="delete-btn" onclick="return confirm('確定要刪除嗎？')">刪除</button>
                             </form>
                         </div>
                     </div>
                 {% endfor %}
             {% else %}
-                <p>目前沒有任何商品，快去上架吧！</p>
+                <p>找不到任何商品。</p>
             {% endif %}
         </div>
     </div>
