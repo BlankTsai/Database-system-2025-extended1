@@ -34,7 +34,7 @@
             <div style="display: flex; gap: 20px; justify-content: space-around;">
                 
                 <form action="{{ url_for('bulk_update') }}" method="POST" style="text-align: center;">
-                    <h3>🔥 全面促銷活動</h3>
+                    <h3>全面促銷活動</h3>
                     <p>將所有價格 > $1000 的商品打 9 折</p>
                     <button type="submit" style="background-color: #fd7e14;" onclick="return confirm('確定要執行嗎？這會影響多筆商品！')">
                         執行降價 (updateMany)
@@ -42,7 +42,7 @@
                 </form>
 
                 <form action="{{ url_for('bulk_delete') }}" method="POST" style="text-align: center;">
-                    <h3>🧹 清理低價庫存</h3>
+                    <h3>清理低價庫存</h3>
                     <p>刪除所有價格 < $100 的商品</p>
                     <button type="submit" style="background-color: #6c757d;" onclick="return confirm('警告：確定要刪除這些商品嗎？此動作無法復原！')">
                         執行清理 (deleteMany)
